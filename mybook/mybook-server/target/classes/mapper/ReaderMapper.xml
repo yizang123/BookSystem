@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mybook.mapper.ReaderMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.mybook.entity.Reader">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="phone" property="phone" />
+        <result column="deleted" property="deleted" />
+        <result column="gmt_create" property="gmtCreate" />
+        <result column="gmt_modified" property="gmtModified" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, name, phone, deleted, gmt_create, gmt_modified
+    </sql>
+    <select id="getReaderList" resultMap="getReader">
+       select t1.id as rid,t1.name as reader_name,t1.phone,t1.book_date,b.name as book_name from (select r.*,bo.book_date,bo.bid from  reader r  left join borrow bo on r.id = bo.rid
+ and bo.deleted = 0 and bo.readied = 0 where r.deleted = 0 ) t1 left join book b on t1.bid = b.id and b.deleted = 0
+    </select>
+    <resultMap id="getReader" type="Reader">
+        <id  column="rid" property="id"/>
+        <result column="reader_name" property="name"/>
+        <result column="phone" property="phone"/>
+        <collection property="borrowList" ofType="Borrow">
+            <result column="book_date" property="bookDate"/>
+        </collection>
+        <collection property="bookList" ofType="Book">
+            <result column="book_name" property="name"/>
+        </collection>
+    </resultMap>
+    <select id="getBidList" resultMap="getBidList" parameterType="map">
+        select r.*,bo.book_date,bo.bid from  reader r left join borrow bo on r.id = bo.rid
+				 and bo.deleted = 0 and bo.readied = 0
+         where r.deleted=0
+        <choose>
+            <when test="name !=null and name !=''">
+                and r.name= #{name}
+            </when>
+            <when test="phone != null and phone != ''">
+                and r.phone= #{phone}
+            </when>
+        </choose>
+    </select>
+    <resultMap id="getBidList" type="Reader">
+        <id  column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="phone" property="phone"/>
+        <collection property="borrowList" ofType="Borrow">
+            <result column="book_date" property="bookDate"/>
+        </collection>
+    </resultMap>
+    <select id="getReaderByMap" resultMap="getReaderByMap" parameterType="map">
+         select t1.id as rid,t1.name as reader_name,t1.phone,t1.book_date,b.name as book_name from
+         (select r.*,bo.book_date,bo.bid from  reader r left join borrow bo on r.id = bo.rid
+         where r.deleted=0 and bo.deleted = 0 and bo.readied = 0
+         <choose>
+             <when test="name !=null and name !=''">
+                 and r.name=#{name}
+             </when>
+             <when test="phone != null and phone != ''">
+                 and r.phone=#{phone}
+             </when>
+         </choose>
+         ) t1 left join book b on t1.bid = b.id where b.deleted=0
+    </select>
+    <resultMap id="getReaderByMap" type="Reader">
+        <id  column="rid" property="id"/>
+        <result column="reader_name" property="name"/>
+        <result column="phone" property="phone"/>
+        <collection property="borrowList" ofType="Borrow">
+            <result column="book_date" property="bookDate"/>
+        </collection>
+        <collection property="bookList" ofType="Book">
+            <result column="book_name" property="name"/>
+        </collection>
+    </resultMap>
+    <select id="getDistinctValue" resultType="int">
+        select  coalesce(count(*),0) from(select A.id from (select r.*  from  reader r  left join borrow bo on r.id = bo.rid
+ and bo.deleted = 0 and bo.readied = 0 where r.deleted = 0) as A group by A.id having count(*)>1) as B
+    </select>
+    <select id="getRid" resultType="int" parameterType="string">
+        select id from reader where phone = #{phone} and deleted = 0
+    </select>
+
+</mapper>

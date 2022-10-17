@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mybook.mapper.BookMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.mybook.entity.Book">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="code" property="code" />
+        <result column="number" property="number" />
+        <result column="deleted" property="deleted" />
+        <result column="gmt_create" property="gmtCreate" />
+        <result column="gmt_modified" property="gmtModified" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, name, code, number, deleted, gmt_create, gmt_modified
+    </sql>
+    <update id="updateNumber" parameterType="int">
+        update book set number = number+1 where
+        id = #{id} and deleted = 0
+    </update>
+    <update id="borrowBook" parameterType="int">
+        update book set number = number-1 where
+        id = #{id} and deleted = 0
+    </update>
+    <select resultType="int" id="getNumber" parameterType="int">
+        select number from book where id = #{id}
+    </select>
+    <select id="getBookList" resultMap="BookList">
+        select id,name,code,number from book where deleted = 0
+    </select>
+    <resultMap id="BookList" type="Book" extends="BaseResultMap">
+
+    </resultMap>
+    <select id="getBookByMap" resultMap="BookList" parameterType="map">
+        select id,name,code,number from book where deleted = 0
+        <choose>
+            <when test="name != null and name != ''">
+                and name = #{name}
+            </when>
+            <when test="code != null and code!=''">
+                and code =#{code}
+            </when>
+        </choose>
+    </select>
+    <select id="getBookNumberList" resultMap="BaseResultMap">
+        select number,b.id from book b inner join borrow bo on b.id = bo.bid and bo.deleted = 0 and bo.readied = 1 where b.deleted = 0;
+    </select>
+
+
+
+</mapper>
